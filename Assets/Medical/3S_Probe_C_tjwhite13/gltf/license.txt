@@ -1,0 +1,11 @@
+Model Information:
+* title:	3S Probe_C
+* source:	https://sketchfab.com/3d-models/3s-probe-c-e88eb047f2334adf90d5f0b33383eff4
+* author:	tjwhite13 (https://sketchfab.com/tjwhite13)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "3S Probe_C" (https://sketchfab.com/3d-models/3s-probe-c-e88eb047f2334adf90d5f0b33383eff4) by tjwhite13 (https://sketchfab.com/tjwhite13) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
