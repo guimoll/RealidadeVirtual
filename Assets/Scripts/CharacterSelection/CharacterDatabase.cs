@@ -5,7 +5,7 @@ public class CharacterOption
 {
     public string displayName;
     public GameObject prefab;
-    public Sprite thumbnail;
+    public Texture2D portrait;
 }
 
 // Lista de personagens compartilhada entre o menu e a cena do jogo.
