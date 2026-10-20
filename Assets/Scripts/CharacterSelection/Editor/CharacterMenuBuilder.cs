@@ -41,18 +41,15 @@ public static class CharacterMenuBuilder
         if (!AssetDatabase.IsValidFolder(DataFolder))
             AssetDatabase.CreateFolder("Assets", "Data");
 
-        CharacterDatabase database = AssetDatabase.LoadAssetAtPath<CharacterDatabase>(DatabasePath);
-        if (database == null)
-        {
-            database = ScriptableObject.CreateInstance<CharacterDatabase>();
-            AssetDatabase.CreateAsset(database, DatabasePath);
-        }
+        // Reimporta as miniaturas ANTES de criar o database: o reimport pode descarregar
+        // o asset recem-criado e a cena ficaria com o campo Database vazio.
+        foreach (var a in Avatars)
+            EnsureSprite(ThumbnailPath(a.folder));
 
-        database.characters = Avatars.Select(a =>
+        CharacterOption[] characters = Avatars.Select(a =>
         {
             string folder = AvatarsRoot + "/" + a.folder;
-            string thumbnailPath = folder + "/" + a.folder + ".png";
-            EnsureSprite(thumbnailPath);
+            string thumbnailPath = ThumbnailPath(a.folder);
 
             GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(folder + "/Export/" + a.folder + ".fbx");
             if (model == null)
@@ -66,9 +63,24 @@ public static class CharacterMenuBuilder
             };
         }).ToArray();
 
+        CharacterDatabase database = AssetDatabase.LoadAssetAtPath<CharacterDatabase>(DatabasePath);
+        if (database == null)
+        {
+            database = ScriptableObject.CreateInstance<CharacterDatabase>();
+            AssetDatabase.CreateAsset(database, DatabasePath);
+        }
+
+        database.characters = characters;
         EditorUtility.SetDirty(database);
         AssetDatabase.SaveAssets();
-        return database;
+
+        // Recarrega do disco para a cena referenciar o asset salvo.
+        return AssetDatabase.LoadAssetAtPath<CharacterDatabase>(DatabasePath);
+    }
+
+    static string ThumbnailPath(string folder)
+    {
+        return AvatarsRoot + "/" + folder + "/" + folder + ".png";
     }
 
     static void EnsureSprite(string texturePath)

@@ -25,6 +25,13 @@ public class CharacterSelector : MonoBehaviour
     {
         buttonTemplate.gameObject.SetActive(false);
 
+        if (database == null)
+        {
+            Debug.LogError("CharacterSelector: campo Database vazio. Arraste Assets/Data/CharacterDatabase.asset " +
+                           "para o objeto CharacterSelector ou rode Tools > Realidade Virtual > Criar Menu de Personagens.", this);
+            return;
+        }
+
         for (int i = 0; i < database.Count; i++)
         {
             int index = i;
@@ -56,7 +63,10 @@ public class CharacterSelector : MonoBehaviour
 
         if (preview)
             Destroy(preview);
-        preview = Instantiate(option.prefab, previewSpot.position, previewSpot.rotation);
+        if (option.prefab)
+            preview = Instantiate(option.prefab, previewSpot.position, previewSpot.rotation);
+        else
+            Debug.LogWarning("CharacterSelector: " + option.displayName + " sem modelo. Rode git lfs pull e recrie o menu.", this);
 
         for (int i = 0; i < buttons.Count; i++)
             buttons[i].image.color = i == selected ? SelectedColor : UnselectedColor;
