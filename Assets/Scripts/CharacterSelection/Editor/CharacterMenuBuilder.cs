@@ -29,14 +29,14 @@ public static class CharacterMenuBuilder
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
             return;
 
-        CharacterDatabase database = BuildDatabase();
-        BuildScene(database);
+        BuildDatabase();
+        BuildScene();
         AddSceneToBuildSettings();
 
         Debug.Log("Menu de personagens criado em " + ScenePath);
     }
 
-    static CharacterDatabase BuildDatabase()
+    static void BuildDatabase()
     {
         if (!AssetDatabase.IsValidFolder(DataFolder))
             AssetDatabase.CreateFolder("Assets", "Data");
@@ -73,9 +73,6 @@ public static class CharacterMenuBuilder
         database.characters = characters;
         EditorUtility.SetDirty(database);
         AssetDatabase.SaveAssets();
-
-        // Recarrega do disco para a cena referenciar o asset salvo.
-        return AssetDatabase.LoadAssetAtPath<CharacterDatabase>(DatabasePath);
     }
 
     static string ThumbnailPath(string folder)
@@ -94,9 +91,15 @@ public static class CharacterMenuBuilder
         importer.SaveAndReimport();
     }
 
-    static void BuildScene(CharacterDatabase database)
+    static void BuildScene()
     {
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+        // NewScene em modo Single descarrega os assets sem uso: o database carregado
+        // antes dele vira objeto destruido e o campo seria salvo vazio. Carrega aqui.
+        CharacterDatabase database = AssetDatabase.LoadAssetAtPath<CharacterDatabase>(DatabasePath);
+        if (database == null)
+            Debug.LogError("CharacterDatabase nao encontrado em " + DatabasePath);
         Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
         // Camera, luz e chao
