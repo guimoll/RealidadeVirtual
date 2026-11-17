@@ -15,7 +15,7 @@ public class CharacterSelector : MonoBehaviour
     [SerializeField] Button cellTemplate;
     [SerializeField] Image bigPortrait;
     [SerializeField] Text selectedNameLabel;
-    [SerializeField] string nextScene = "SampleScene";
+    [SerializeField] string nextScene = "HospitalRoom";
     [SerializeField] float previewRotationSpeed = 20f;
 
     static readonly Color FrameSelected = new Color(1f, 0.78f, 0.15f);
