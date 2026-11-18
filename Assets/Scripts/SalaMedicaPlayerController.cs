@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class SalaMedicaPlayerController : MonoBehaviour
 {
     public float velocidade = 4f;
     public float sensibilidadeOlhar = 90f;

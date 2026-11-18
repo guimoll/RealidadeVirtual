@@ -1595,7 +1595,7 @@ MonoBehaviour:
   cellTemplate: {fileID: 756486799}
   bigPortrait: {fileID: 54311301}
   selectedNameLabel: {fileID: 431936799}
-  nextScene: HospitalRoom
+  nextScene: HospitalRoomEvents
   previewRotationSpeed: 20
 --- !u!4 &1710200004
 Transform:

@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/CharacterSelect.unity
     guid: 09c035af199b08842addc27406793943
   - enabled: 1
+    path: Assets/Scenes/HospitalRoomEvents.unity
+    guid: ce5f141f616cc9442b47d654d58fc2fa
+  - enabled: 1
     path: Assets/Scenes/HospitalRoom.unity
     guid: 7ca3a9fcf82d26b4aa73662a9b44ec14
   - enabled: 0
