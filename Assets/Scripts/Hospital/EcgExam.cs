@@ -31,6 +31,17 @@ public class EcgExam : MonoBehaviour
     public bool Measuring { get; private set; }
     public bool Completed { get; private set; }
 
+    // ---- Ganchos para eventos (EcgEventDirector). Sem diretor na cena, nada disso e usado.
+
+    // Fracao do exame (0..1) em que a contagem trava e ThresholdReached e chamado. < 0 desliga.
+    // Dispara uma vez: depois de disparar volta para -1 ate alguem armar de novo.
+    public float EventThreshold { get; set; } = -1f;
+    public event System.Action ThresholdReached;
+    // Exame pausado por um evento: a barra fica parada e o aparelho sai da mao.
+    public bool Suspended { get; private set; }
+    // O ultimo evento terminou em falha; o objetivo mostra isso ate o jogador medir de novo.
+    public bool Failed { get; private set; }
+
     void Start()
     {
         device = FindFirstObjectByType<EcgDevice>();
@@ -65,7 +76,7 @@ public class EcgExam : MonoBehaviour
 
     void Update()
     {
-        if (Completed || !Holding)
+        if (Completed || !Holding || Suspended)
             return;
 
         float dt = Time.deltaTime;
@@ -90,6 +101,22 @@ public class EcgExam : MonoBehaviour
         Progress = Measuring
             ? Mathf.Min(1f, Progress + dt / examSeconds)
             : Mathf.Max(0f, Progress - decayPerSecond * dt);
+
+        if (Failed && Measuring)
+        {
+            Failed = false;
+            RefreshObjective();
+        }
+
+        // Chegou no ponto do evento: trava a contagem ali e avisa o diretor.
+        if (EventThreshold > 0f && Progress >= EventThreshold)
+        {
+            Progress = EventThreshold;
+            EventThreshold = -1f;
+            Suspend();
+            ThresholdReached?.Invoke();
+            return;
+        }
 
         monitor.Live = Measuring;
         device.SetLed(Measuring ? LedActive : LedIdle);
@@ -156,6 +183,7 @@ public class EcgExam : MonoBehaviour
         interactor.PromptOverride = null;
         interactor.InteractionBlocked = false;
         interactor.SetProgress(-1f, "");
+        Failed = false;
         interactor.Say("Você devolveu o aparelho à mesa.", 3f);
         RefreshObjective();
     }
@@ -175,12 +203,67 @@ public class EcgExam : MonoBehaviour
         RefreshObjective();
     }
 
+    // Pausa o exame para um evento: a barra trava, o monitor perde o sinal e o aparelho some da mao.
+    void Suspend()
+    {
+        Suspended = true;
+        Measuring = false;
+        contactBlend = 0f;
+        monitor.Live = false;
+        device.SetLed(LedIdle);
+        device.gameObject.SetActive(false);
+        interactor.PromptOverride = null;
+        interactor.SetProgress(-1f, "");
+    }
+
+    // O evento foi resolvido: o aparelho volta para a mao e o progresso continua de onde parou.
+    public void ResumeAfterEvent()
+    {
+        if (!Suspended)
+            return;
+        Failed = false;
+        BackToHand();
+    }
+
+    // O evento falhou: o exame para (progresso zerado), mas o aparelho continua na mao
+    // para o jogador poder refazer tudo.
+    public void FailAfterEvent()
+    {
+        if (!Suspended)
+            return;
+        Progress = 0f;
+        Failed = true;
+        BackToHand();
+    }
+
+    void BackToHand()
+    {
+        Suspended = false;
+        Measuring = false;
+        contactBlend = 0f;
+        monitor.Live = false;
+        device.gameObject.SetActive(true);
+        Transform cam = view.transform;
+        device.transform.SetPositionAndRotation(cam.TransformPoint(HeldOffset), cam.rotation * Quaternion.Euler(8f, -14f, 0f));
+        interactor.InteractionBlocked = false;
+        interactor.PromptOverride = null;
+        interactor.SetProgress(Progress > 0.001f ? Progress : -1f, "ELETROCARDIOGRAMA   " + Mathf.RoundToInt(Progress * 100f) + "%");
+        lastObjectiveKey = -1;
+        RefreshObjective();
+    }
+
     void RefreshObjective()
     {
-        int key = Completed ? 3 : Holding ? 2 : 1;
+        int key = Completed ? 3 : Failed ? 4 : Holding ? 2 : 1;
         if (key == lastObjectiveKey)
             return;
         lastObjectiveKey = key;
+
+        if (key == 4)
+        {
+            interactor.SetObjective("FALHA\nO paciente não resistiu. Aponte para o peito e segure [E] para refazer o exame.");
+            return;
+        }
 
         interactor.SetObjective(key == 3
             ? "OBJETIVO CUMPRIDO\nO eletrocardiograma foi concluído."
